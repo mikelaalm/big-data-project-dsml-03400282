@@ -81,7 +81,7 @@ tod_expr = (
 )
 
 result1 = (
-    crime_df.
+    crime_df
     .withColumn("time_of_day", tod_expr)
     .groupBy("time_of_day")
     .agg(
@@ -95,3 +95,59 @@ result1 = (
 )
 
 timed_show("Dataframe (no UDF)", result1)
+
+# Implementation 2: Dataframe API, with UDF
+print("=" * 60)
+print("Implementation 2 - Dataframe API (with UDF)")
+print("=" * 60)
+
+classify_udf = udf(_classify, StringType())
+
+result2 = (
+    crime_df
+    .withColumn("time_of_day", classify_udf(F.col("time_occ")))
+    .groupBy("time_of_day")
+    .agg(
+        F.count("*").alias("total"),
+        F.sum(F.when(F.col("premis_desc") == "STREET", 1).otherwise(0)).alias("street"),
+    )
+    .withColumn("street_pct", F.round(F.col("street") / F.col("total") * 100, 2))
+    .select("time_of_day", "street_pct")
+    .orderBy(F.col("street_pct").desc())
+)
+
+timed_show("Dataframe (with UDF)", result2)
+
+
+# Implementation 3: RDD API
+print("=" * 60)
+print("Implementation 3 - RDD API")
+print("=" * 60)
+
+rdd_result = (
+    crime_df.rdd
+    # (time_of_day, (total_count, street_count))
+    .map(lambda r: (
+        _classify(r["time_occ"]),
+        (1, 1 if r["premis_desc"] == "STREET" else 0)
+    ))
+    .filter(lambda x: x[0] is not None)
+    .reduceByKey(lambda a, b: (a[0] + b[0], a[1] + b[1]))
+    # (time_of_day, street_pct)
+    .map(lambda x: (x[0], round(x[1][1] / x[1][0] * 100, 2)))
+    .sortBy(lambda x: x[1], ascending = False)
+)
+
+timed_show("RDD", rdd_result, is_rdd = True)
+
+
+# Timing summary
+print("=" * 60)
+print("Timing Summary")
+print("=" * 60)
+
+for label, elapsed in timings.items():
+    print(f" {label:<25} {elapsed:.2f}s")
+print()
+
+spark.stop()
