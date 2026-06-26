@@ -42,7 +42,7 @@ def query_3_dataframe(spark):
 
     income_df = income_df.select(
         col(income_df.columns[0]).alias('zipcode'),
-        col(income_df.columns[1]).alias('median_income')
+        col(income_df.columns[2]).alias('median_income')
     )
 
     income_df = income_df.filter(col('zipcode').isNotNull() & col('median_income').isNotNull())
@@ -100,7 +100,15 @@ def query_3_rdd(spark):
     income_path = "hdfs://hdfs-namenode.default.svc.cluster.local:9000/data/LA_income_2021.csv"
 
     income_rdd = sc.textFile(income_path).filter(lambda x: x.strip())
-    income_data = income_rdd.zipWithIndex().filter(lambda x: x[1] > 0).map(lambda x: x[0].split(';')).filter(lambda x: len(x) >= 2).map(lambda x: (str(x[0].strip(), float(x[1].strip()))))
+    income_data = (
+        income_rdd
+        .zipWithIndex()
+        .filter(lambda x: x[1] > 0)
+        .map(lambda x: x[0].split(';'))
+        .filter(lambda x: len(x) >= 3)
+        .filter(lambda x: x[2].strip() not in ['---', ''] and x[2].strip().replace('$', '').replace(',', '').replace('.', '', 1).isdigit())
+        .map(lambda x: (str(x[0].strip()), float(x[2].strip().replace('$', '').replace(',',''))))
+    )
 
     result_rdd = census_aggregated.join(income_data)
 
