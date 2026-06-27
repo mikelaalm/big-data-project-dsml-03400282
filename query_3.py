@@ -1,7 +1,7 @@
 # QUERY 3
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, sum as spark_sum
+from pyspark.sql.functions import col, sum as spark_sum, regexp_replace
 import time
 import json
 import sys
@@ -39,10 +39,10 @@ def query_3_dataframe(spark):
     income_path = "hdfs://hdfs-namenode.default.svc.cluster.local:9000/data/LA_income_2021.csv"
 
     income_df = spark.read.option("delimiter", ";").option("header", "true").csv(income_path)
-
+    
     income_df = income_df.select(
         col(income_df.columns[0]).alias('zipcode'),
-        col(income_df.columns[2]).alias('median_income')
+        regexp_replace(col(income_df.columns[2]), r'[\$,]', '').alias('median_income')
     )
 
     income_df = income_df.filter(col('zipcode').isNotNull() & col('median_income').isNotNull())
@@ -57,7 +57,7 @@ def query_3_dataframe(spark):
         'zipcode',
         'total_population',
         'median_income',
-        '(CAST(median_income AS DOUBLE) / total_population) AS per_capita_income_2020_2021'
+        'ROUND((CAST(median_income AS DOUBLE) / total_population), 2) AS per_capita_income_2020_2021'
     ).orderBy('zipcode')
 
     result_df.show(100)
