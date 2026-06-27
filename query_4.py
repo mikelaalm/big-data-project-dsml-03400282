@@ -41,8 +41,8 @@ stations_df = (
     spark.read.csv(STATIONS, header = True, inferSchema = True)
     .select(
         col("DIVISION").alias("division"),
-        col("LAT").cast("double").alias("station_lat"),
-        col("LON").cast("double").alias("station_lon")
+        col("X").cast("double").alias("station_lon"),
+        col("Y").cast("double").alias("station_lat")
     )
     .filter(col("station_lat").isNotNull() & col("station_lon").isNotNull())
 )
@@ -101,6 +101,11 @@ print(f" - Computed distance calculations")
 
 print("\n[3/5] Aggregating results by station...")
 
+# print(f"\n[DEBUG] Distinct divisions in crimes_with_nearest: {crimes_with_nearest.select('division').distinct().count()}")
+# print("[DEBUG] Sample of crimes_with_nearest:")
+# crimes_with_nearest.select("division", "distance").distinct().show(25, truncate=False)
+
+
 result_df = crimes_with_nearest.groupBy("division").agg(
     count("*").alias("crime_count"),
     spark_round(avg("distance"), 3).alias("average_distance")
@@ -114,7 +119,7 @@ result_df.explain(extended = False)
 
 print("\n[5/5] Results:")
 print("=" * 60)
-result_df.show(truncate = False)
+result_df.show(n = 30, truncate = False)
 
 row_count = result_df.count()
 
