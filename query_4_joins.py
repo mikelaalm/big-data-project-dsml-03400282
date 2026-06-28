@@ -1,7 +1,4 @@
 # QUERY 4 - JOIN STRATEGY COMPARISON (Requirement 6)
-# Tests: DEFAULT, BROADCAST, MERGE, SHUFFLE_HASH, SHUFFLE_REPLICATE_NL
-# Note: MERGE and SHUFFLE_HASH require join keys and may fall back
-# since Query 4 uses a CROSS JOIN (no key)
 
 from pyspark.sql import SparkSession, Window
 from pyspark.sql.functions import col, udf, round as spark_round, row_number, count, avg
