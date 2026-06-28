@@ -57,7 +57,7 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     if lat1 is None or lon1 is None or lat2 is None or lon2 is None:
         return None
 
-    R = 6471 # earth radius (km)
+    R = 6371 # earth radius (km)
 
     lat1_rad = math.radians(lat1)
     lon1_rad = math.radians(lon1)
