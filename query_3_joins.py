@@ -1,5 +1,4 @@
 # QUERY 3 - JOIN STRATEGY COMPARISON (Requirement 6)
-# Tests: DEFAULT, BROADCAST, MERGE, SHUFFLE_HASH, SHUFFLE_REPLICATE_NL
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, sum as spark_sum, regexp_replace
