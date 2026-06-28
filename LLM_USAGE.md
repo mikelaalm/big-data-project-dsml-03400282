@@ -7,7 +7,6 @@ in the context of this project, in accordance with the course submission require
 
 ---
 
-## Code 
 
 | Section | Tool | Extent of Use | Completed Without LLM |
 |---|---|---|---|
